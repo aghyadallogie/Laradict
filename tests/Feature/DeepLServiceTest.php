@@ -22,7 +22,7 @@ function deeplResponse(string $text, string $detected = 'DE'): array
 it('sends the auth header and form params to the configured endpoint', function () {
     Http::fake(['*' => Http::response(deeplResponse('Hello'))]);
 
-    $result = (new DeepLService())->translate('Hallo', 'en');
+    $result = (new DeepLService)->translate('Hallo', 'en');
 
     expect($result)->toBe(['text' => 'Hello', 'detected' => 'de']);
 
@@ -37,7 +37,7 @@ it('uses the configured base url for pro keys', function () {
     config(['services.deepl.url' => 'https://api.deepl.com/']);
     Http::fake(['*' => Http::response(deeplResponse('Hello'))]);
 
-    (new DeepLService())->translate('Hallo', 'EN', 'de');
+    (new DeepLService)->translate('Hallo', 'EN', 'de');
 
     Http::assertSent(fn (Request $request) => $request->url() === 'https://api.deepl.com/v2/translate'
         && $request['source_lang'] === 'DE');
@@ -46,14 +46,14 @@ it('uses the configured base url for pro keys', function () {
 it('returns an empty result on http errors', function () {
     Http::fake(['*' => Http::response(['message' => 'Quota exceeded'], 456)]);
 
-    expect((new DeepLService())->translate('Hallo', 'EN'))
+    expect((new DeepLService)->translate('Hallo', 'EN'))
         ->toBe(['text' => '', 'detected' => null]);
 });
 
 it('returns an empty result when the connection fails', function () {
     Http::fake(fn () => throw new ConnectionException('timeout'));
 
-    expect((new DeepLService())->translate('Hallo', 'EN'))
+    expect((new DeepLService)->translate('Hallo', 'EN'))
         ->toBe(['text' => '', 'detected' => null]);
 });
 
@@ -66,7 +66,7 @@ it('detects the source language and translates to every user language', function
         });
     });
 
-    $result = (new DeepLService())->detectAndTranslate(
+    $result = (new DeepLService)->detectAndTranslate(
         'Hallo',
         ['fr', 'es'],
         ['fr' => 'FR', 'es' => 'ES'],
@@ -95,7 +95,7 @@ it('does not reuse the detection call when the text is already in the first targ
         });
     });
 
-    $result = (new DeepLService())->detectAndTranslate(
+    $result = (new DeepLService)->detectAndTranslate(
         'Bonjour',
         ['fr', 'es'],
         ['fr' => 'FR', 'es' => 'ES'],
@@ -115,7 +115,7 @@ it('keeps the other translations, reports and logs the language that failed', fu
         };
     });
 
-    $result = (new DeepLService())->detectAndTranslate(
+    $result = (new DeepLService)->detectAndTranslate(
         'Hallo',
         ['fr', 'es'],
         ['fr' => 'FR', 'es' => 'ES'],
@@ -135,7 +135,7 @@ it('throws and logs when the source language cannot be detected', function () {
     Log::spy();
     Http::fake(['*' => Http::response(['message' => 'Forbidden'], 403)]);
 
-    expect(fn () => (new DeepLService())->detectAndTranslate('Hallo', ['fr'], ['fr' => 'FR']))
+    expect(fn () => (new DeepLService)->detectAndTranslate('Hallo', ['fr'], ['fr' => 'FR']))
         ->toThrow(DeepLException::class);
 
     Log::shouldHaveReceived('warning')->once()->withArgs(fn ($message, $context) => $context['status'] === 403
@@ -150,7 +150,7 @@ it('throws when nothing could be translated', function () {
             : Http::response(['message' => 'Too many requests'], 429);
     });
 
-    expect(fn () => (new DeepLService())->detectAndTranslate('Hallo', ['fr', 'es'], ['fr' => 'FR', 'es' => 'ES']))
+    expect(fn () => (new DeepLService)->detectAndTranslate('Hallo', ['fr', 'es'], ['fr' => 'FR', 'es' => 'ES']))
         ->toThrow(DeepLException::class);
 });
 
@@ -159,12 +159,12 @@ it('never logs the auth key or the text being translated', function () {
     Http::fake(['*' => Http::response(['message' => 'Forbidden'], 403)]);
 
     try {
-        (new DeepLService())->detectAndTranslate('secret sentence', ['fr'], ['fr' => 'FR']);
+        (new DeepLService)->detectAndTranslate('secret sentence', ['fr'], ['fr' => 'FR']);
     } catch (DeepLException) {
     }
 
     Log::shouldHaveReceived('warning')->withArgs(function ($message, $context) {
-        $logged = $message . json_encode($context);
+        $logged = $message.json_encode($context);
 
         return ! str_contains($logged, 'test-key') && ! str_contains($logged, 'secret sentence');
     });

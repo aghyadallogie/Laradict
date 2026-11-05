@@ -38,7 +38,6 @@ class AuthController extends Controller
      *
      * Validates the registration form, creates a new user, logs them in, and redirects to the welcome page.
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function register(Request $request)
@@ -63,7 +62,6 @@ class AuthController extends Controller
      *
      * Validates login credentials and attempts authentication. On success, regenerates session and redirects to welcome page.
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function login(Request $request)
@@ -74,7 +72,7 @@ class AuthController extends Controller
         ]);
 
         // Limit failed attempts per email + IP so one account can't be brute-forced.
-        $throttleKey = Str::lower($validated['email']) . '|' . $request->ip();
+        $throttleKey = Str::lower($validated['email']).'|'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_LOGIN_ATTEMPTS)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -101,7 +99,6 @@ class AuthController extends Controller
     /**
      * Log out the current user and invalidate the session.
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function logout(Request $request)
@@ -129,7 +126,6 @@ class AuthController extends Controller
      *
      * Validates and updates the user's languages, then redirects to the welcome page.
      *
-     * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function updateLanguages(Request $request)
