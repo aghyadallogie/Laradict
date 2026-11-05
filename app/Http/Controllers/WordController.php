@@ -7,6 +7,7 @@ use App\Models\Word;
 use App\Services\DeepLService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class WordController extends Controller
 {
@@ -52,13 +53,13 @@ class WordController extends Controller
     }
 
     /**
-     * Display a list of all words for the authenticated user.
+     * Display a paginated list of the authenticated user's words, newest first.
      *
      * @return \Illuminate\View\View
      */
     public function show()
     {
-        $words = Word::where('user_id', Auth::id())->orderBy('created_at', 'desc')->get();
+        $words = Auth::user()->words()->latest()->latest('id')->paginate(15);
 
         return view('words.show', compact('words'));
     }
@@ -70,20 +71,20 @@ class WordController extends Controller
      */
     public function showWelcome()
     {
-        $latestWord = Word::where('user_id', Auth::id())->orderBy('created_at', 'desc')->first();
+        $latestWord = Auth::user()->words()->latest()->latest('id')->first();
 
         return view('welcome', compact('latestWord'));
     }
 
     /**
-     * Delete a word belonging to the authenticated user.
+     * Delete a word. Only its owner may do so (see WordPolicy).
      *
-     * @param  int  $id  The ID of the word to delete.
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy($id)
+    public function destroy(Word $word)
     {
-        $word = Word::where('id', $id)->where('user_id', Auth::id())->firstOrFail();
+        Gate::authorize('delete', $word);
+
         $word->delete();
 
         return redirect('/words')->with('success', 'Word deleted successfully.');

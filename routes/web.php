@@ -14,13 +14,14 @@ Route::middleware(['guest'])->controller(AuthController::class)->group(function 
 });
 
 Route::middleware(['auth'])->controller(AuthController::class)->group(function () {
-    Route::get('/', [WordController::class, 'showWelcome'])->name('welcome');
     Route::get('/profile', 'showProfile')->name('profile');
     Route::patch('/profile/languages', 'updateLanguages')->name('profile.languages.update');
 });
 
 Route::middleware(['auth'])->controller(WordController::class)->group(function () {
-    Route::post('/', [WordController::class, 'store'])->name('welcome');
+    Route::get('/', 'showWelcome')->name('welcome');
+    // Every translation spends DeepL quota, so cap it per user (see AppServiceProvider).
+    Route::post('/', 'store')->middleware('throttle:translate')->name('words.store');
     Route::get('/words', 'show')->name('words.show');
     Route::delete('/words/{word}', 'destroy')->name('words.destroy');
 });

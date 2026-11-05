@@ -25,4 +25,7 @@
             </div>
         @endforeach
     </ul>
+    <div class="max-w-md mx-auto mb-8">
+        {{ $words->links() }}
+    </div>
 </x-layout>

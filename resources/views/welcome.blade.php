@@ -1,6 +1,6 @@
 <x-layout>
   <div class="mt-8 flex flex-col ">
-    <form action="{{ route('welcome') }}" method="POST" class="flex space-y-4 min-w-full">
+    <form action="{{ route('words.store') }}" method="POST" class="flex space-y-4 min-w-full">
       @csrf
       <label for="text-to-translate" class="text-lg font-semibold"></label>
       <input type="text" class="outline-none" id="text-to-translate" name="text_to_translate"
