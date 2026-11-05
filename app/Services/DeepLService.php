@@ -54,7 +54,6 @@ class DeepLService
             ->each(function ($langCode) use (&$translations, $text, $detectedLang) {
                 $translations[$langCode] = $this->translate($text, strtoupper($langCode), strtoupper($detectedLang))['text'] ?? '';
             });
-
         return $translations;
     }
 
@@ -78,7 +77,6 @@ class DeepLService
     public function translate(string $text, string $targetLang, string $sourceLang = null): array
     {
         $params = [
-            'auth_key' => $this->authKey,
             'text' => $text,
             'target_lang' => strtoupper($targetLang),
         ];
@@ -87,6 +85,9 @@ class DeepLService
         }
         try {
             $response = $this->client->post('https://api-free.deepl.com/v2/translate', [
+                'headers' => [
+                    'Authorization' => 'DeepL-Auth-Key ' . $this->authKey,
+                ],
                 'form_params' => $params,
                 'timeout' => 5,
             ]);
