@@ -12,7 +12,7 @@ class DeepLService
     public function __construct()
     {
         $this->client = new Client();
-        $this->authKey = env('DEEPL_AUTH_KEY');
+        $this->authKey = config('services.deepl.auth_key');
     }
 
     /**
