@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Http;
 
 class DeepLService
 {
-    protected $client;
     protected $authKey;
+    protected $baseUrl;
 
     public function __construct()
     {
-        $this->client = new Client();
         $this->authKey = config('services.deepl.auth_key');
+        $this->baseUrl = rtrim(config('services.deepl.url'), '/');
     }
 
     /**
@@ -47,7 +47,7 @@ class DeepLService
             $translations['en'] = $this->translate($text, 'EN', strtoupper($detectedLang))['text'] ?? '';
         }
 
-        // Translate to all other user languages except detected and English
+        // Translate to all other user languages except detected and English using the translate method
         collect($userLanguages)
             ->map(fn($lang) => strtolower($languageMap[$lang] ?? ''))
             ->filter(fn($langCode) => $langCode && $langCode !== $detectedLang && $langCode !== 'en')
@@ -60,8 +60,8 @@ class DeepLService
     /**
      * Translates text using the DeepL API.
      *
-     * Sends a request to the DeepL translation API to translate the given text to the specified target language.
-     * Optionally, a source language can be provided to specify the language of the input text; otherwise, DeepL will auto-detect it.
+     * Sends a request to the DeepL translation API to auto-detect language of the input text 
+     * and then use translate method on it to the specified target languages.
      *
      * Returns an array containing:
      *   - 'text': The translated text (string, or empty string on failure)
@@ -74,7 +74,7 @@ class DeepLService
      * @param string|null $sourceLang The source language code (optional, e.g., 'DE').
      * @return array ['text' => translated text, 'detected' => detected source language code]
      */
-    public function translate(string $text, string $targetLang, string $sourceLang = null): array
+    public function translate(string $text, string $targetLang, ?string $sourceLang = null): array
     {
         $params = [
             'text' => $text,
@@ -84,14 +84,16 @@ class DeepLService
             $params['source_lang'] = strtoupper($sourceLang);
         }
         try {
-            $response = $this->client->post('https://api-free.deepl.com/v2/translate', [
-                'headers' => [
-                    'Authorization' => 'DeepL-Auth-Key ' . $this->authKey,
-                ],
-                'form_params' => $params,
-                'timeout' => 5,
-            ]);
-            $data = json_decode($response->getBody(), true);
+            $response = Http::withHeaders(['Authorization' => 'DeepL-Auth-Key ' . $this->authKey])
+                ->asForm()
+                ->timeout(5)
+                ->post($this->baseUrl . '/v2/translate', $params);
+
+            if ($response->failed()) {
+                return ['text' => '', 'detected' => null];
+            }
+
+            $data = $response->json();
             return [
                 'text' => $data['translations'][0]['text'] ?? '',
                 'detected' => strtolower($data['translations'][0]['detected_source_language'] ?? ''),

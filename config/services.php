@@ -37,6 +37,13 @@ return [
 
     'deepl' => [
         'auth_key' => env('DEEPL_AUTH_KEY'),
+        // DeepL free keys end in ":fx" and only work against the free endpoint.
+        'url' => env(
+            'DEEPL_API_URL',
+            str_ends_with((string) env('DEEPL_AUTH_KEY'), ':fx')
+                ? 'https://api-free.deepl.com'
+                : 'https://api.deepl.com'
+        ),
     ],
 
 ];
