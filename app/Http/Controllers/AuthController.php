@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
+    private const MAX_LOGIN_ATTEMPTS = 5;
+
     /**
      * Show the registration form view.
      *
@@ -69,11 +73,25 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Limit failed attempts per email + IP so one account can't be brute-forced.
+        $throttleKey = Str::lower($validated['email']) . '|' . $request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, self::MAX_LOGIN_ATTEMPTS)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->withErrors([
+                'email' => "Too many login attempts. Please try again in {$seconds} seconds.",
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($validated)) {
+            RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
 
             return redirect()->route('welcome');
         }
+
+        RateLimiter::hit($throttleKey);
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

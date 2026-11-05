@@ -19,7 +19,7 @@ This project provides a robust Laravel applications with user registration, auth
 ## Getting Started
 
 ### Prerequisites
-- PHP >= 8.0
+- PHP >= 8.2
 - Composer
 - Node.js & npm (for frontend assets)
 - A DeepL API key ([get one here](https://www.deepl.com/pro-api))

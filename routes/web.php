@@ -8,7 +8,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware(['guest'])->controller(AuthController::class)->group(function () {
     Route::get('/register', 'showRegister')->name('show.register');
-    Route::post('/register', 'register')->name('register');
+    Route::post('/register', 'register')->middleware('throttle:10,60')->name('register');
     Route::get('/login', 'showLogin')->name('show.login');
     Route::post('/login', 'login')->name('login');
 });
