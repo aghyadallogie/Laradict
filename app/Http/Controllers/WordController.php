@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DeepLException;
 use App\Models\Word;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,14 +30,27 @@ class WordController extends Controller
         $languageMap = config('languages');
         $userLanguages = $user->languages ?? [];
 
-        $translations = $deepL->detectAndTranslate($validated['text_to_translate'], $userLanguages, $languageMap);
+        try {
+            $result = $deepL->detectAndTranslate($validated['text_to_translate'], $userLanguages, $languageMap);
+        } catch (DeepLException $e) {
+            // Nothing usable came back (already logged by the service), so don't save a blank word.
+            return back()
+                ->withInput()
+                ->withErrors(['text_to_translate' => 'Translation is unavailable right now, please try again in a moment.']);
+        }
 
         Word::create([
             'user_id' => $user->id,
-            'translations' => $translations,
+            'translations' => $result['translations'],
         ]);
 
-        return redirect('/');
+        $redirect = redirect('/');
+
+        if ($result['failed']) {
+            $redirect->with('warning', 'Saved, but these languages could not be translated: ' . strtoupper(implode(', ', $result['failed'])));
+        }
+
+        return $redirect;
     }
 
     /**

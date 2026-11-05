@@ -7,6 +7,9 @@
         placeholder="Type a word or a sentence to translate.." required>
       <button type="submit" class="btn">Translate</button>
     </form>
+    @error('text_to_translate')
+      <p class="mt-2 text-red-600 font-semibold">{{ $message }}</p>
+    @enderror
     @if(isset($latestWord))
       @foreach($latestWord->translations as $lang => $translation)
       <li class="flex justify-between items-center px-4 py-3 mb-1 bg-white text-lg shadow-sm">

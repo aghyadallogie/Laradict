@@ -15,6 +15,12 @@
       {{ session('success') }}
     </div>
   @endif
+  @if (session('warning'))
+    <div id="flash-warning"
+      class="p-4 absolute top-0 left-1/2 z-10 text-center bg-yellow-50 opacity-90 text-yellow-700 border-2 border-yellow-600 font-bold">
+      {{ session('warning') }}
+    </div>
+  @endif
   <header>
     <nav>
       <h1>
