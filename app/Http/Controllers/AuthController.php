@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateLanguagesRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -40,17 +42,9 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'languages' => ['nullable', 'array'],
-            'languages.*' => ['string', Rule::in(array_keys(config('languages')))],
-        ]);
-
-        $user = User::create($validated);
+        $user = User::create($request->validated());
 
         Auth::login($user);
 
@@ -64,12 +58,9 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $validated = $request->validated();
 
         // Limit failed attempts per email + IP so one account can't be brute-forced.
         $throttleKey = Str::lower($validated['email']).'|'.$request->ip();
@@ -128,16 +119,9 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function updateLanguages(Request $request)
+    public function updateLanguages(UpdateLanguagesRequest $request)
     {
-        $validated = $request->validate([
-            'languages' => ['nullable', 'array'],
-            'languages.*' => ['string', Rule::in(array_keys(config('languages')))],
-        ]);
-
-        $user = $request->user();
-        $user->languages = $validated['languages'] ?? [];
-        $user->save();
+        $request->user()->update(['languages' => $request->validated('languages', [])]);
 
         return redirect()->route('welcome')->with('success', 'Languages updated successfully!');
     }

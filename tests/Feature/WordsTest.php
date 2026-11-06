@@ -69,9 +69,9 @@ it('returns 404 when deleting a word that does not exist', function () {
     $this->actingAs($this->user)->delete('/words/999')->assertNotFound();
 });
 
-it('throttles translations to 30 per minute per user', function () {
+it('throttles translations to 20 per minute per user', function () {
     // Invalid input fails validation before DeepL is called, but still counts towards the limit.
-    for ($i = 0; $i < 30; $i++) {
+    for ($i = 0; $i < 20; $i++) {
         $this->actingAs($this->user)->post('/', [])->assertStatus(302);
     }
 

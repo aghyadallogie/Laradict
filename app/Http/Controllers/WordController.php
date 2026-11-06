@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\StoreWord;
 use App\Exceptions\DeepLException;
+use App\Http\Requests\StoreWordRequest;
 use App\Models\Word;
-use App\Services\DeepLService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
@@ -19,29 +19,15 @@ class WordController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request, DeepLService $deepL)
+    public function store(StoreWordRequest $request, StoreWord $storeWord)
     {
-        $validated = $request->validate([
-            'text_to_translate' => 'required|string|min:1',
-        ]);
-
-        $user = Auth::user();
-        $languageMap = config('languages');
-        $userLanguages = $user->languages ?? [];
-
         try {
-            $result = $deepL->detectAndTranslate($validated['text_to_translate'], $userLanguages, $languageMap);
-        } catch (DeepLException $e) {
-            // Nothing usable came back (already logged by the service), so don't save a blank word.
+            $result = $storeWord->handle($request->user(), $request->validated('text_to_translate'));
+        } catch (DeepLException) {
             return back()
                 ->withInput()
                 ->withErrors(['text_to_translate' => 'Translation is unavailable right now, please try again in a moment.']);
         }
-
-        Word::create([
-            'user_id' => $user->id,
-            'translations' => $result['translations'],
-        ]);
 
         $redirect = redirect('/');
 

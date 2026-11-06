@@ -20,7 +20,6 @@ Route::middleware(['auth'])->controller(AuthController::class)->group(function (
 
 Route::middleware(['auth'])->controller(WordController::class)->group(function () {
     Route::get('/', 'showWelcome')->name('welcome');
-    // Every translation spends DeepL quota, so cap it per user (see AppServiceProvider).
     Route::post('/', 'store')->middleware('throttle:translate')->name('words.store');
     Route::get('/words', 'show')->name('words.show');
     Route::delete('/words/{word}', 'destroy')->name('words.destroy');

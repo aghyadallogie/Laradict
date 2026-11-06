@@ -57,6 +57,32 @@ it('saves the word without blanks and warns when only some languages fail', func
     expect(Word::first()->translations)->toBe(['de' => 'Hallo', 'en' => 'Hello', 'fr' => 'Bonjour']);
 });
 
+it('rejects empty, oversized and non-string input without calling DeepL', function (mixed $text) {
+    Http::fake();
+
+    $this->actingAs($this->user)
+        ->post('/', ['text_to_translate' => $text])
+        ->assertSessionHasErrors('text_to_translate');
+
+    Http::assertNothingSent();
+    expect(Word::count())->toBe(0);
+})->with([
+    'empty' => [''],
+    'missing' => [null],
+    'too long' => [str_repeat('a', 501)],
+    'an array' => [['a']],
+]);
+
+it('accepts text at the length limit', function () {
+    fakeDeepL();
+
+    $this->actingAs($this->user)
+        ->post('/', ['text_to_translate' => str_repeat('a', 500)])
+        ->assertSessionHasNoErrors();
+
+    expect(Word::count())->toBe(1);
+});
+
 it('saves nothing and shows an error when DeepL is unusable', function () {
     fakeDeepL(failing: ['FR', 'EN', 'ES'], status: 403);
 
