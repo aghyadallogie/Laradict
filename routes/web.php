@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WordController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,8 +14,8 @@ Route::middleware(['guest'])->controller(AuthController::class)->group(function 
     Route::post('/login', 'login')->name('login');
 });
 
-Route::middleware(['auth'])->controller(AuthController::class)->group(function () {
-    Route::get('/profile', 'showProfile')->name('profile');
+Route::middleware(['auth'])->controller(ProfileController::class)->group(function () {
+    Route::get('/profile', 'show')->name('profile');
     Route::patch('/profile/languages', 'updateLanguages')->name('profile.languages.update');
 });
 

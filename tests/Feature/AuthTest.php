@@ -87,6 +87,18 @@ it('rejects unknown languages on the profile page', function () {
     expect($user->fresh()->languages)->toBe(['french']);
 });
 
+it('shows the profile page with the user\'s details and chosen languages checked', function () {
+    $user = User::factory()->create(['name' => 'Jane Doe', 'languages' => ['french']]);
+
+    $this->withoutVite()
+        ->actingAs($user)
+        ->get('/profile')
+        ->assertOk()
+        ->assertSee('Jane Doe')
+        ->assertSee($user->email)
+        ->assertSee('value="french"', false);
+});
+
 it('requires login for the profile page', function () {
     $this->get('/profile')->assertRedirect(route('show.login'));
 });

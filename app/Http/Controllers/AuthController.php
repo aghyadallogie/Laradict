@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\UpdateLanguagesRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,29 +99,5 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('show.login');
-    }
-
-    /**
-     * Show the authenticated user's profile page.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function showProfile()
-    {
-        return view('profile', ['user' => Auth::user()]);
-    }
-
-    /**
-     * Update the authenticated user's preferred languages.
-     *
-     * Validates and updates the user's languages, then redirects to the welcome page.
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function updateLanguages(UpdateLanguagesRequest $request)
-    {
-        $request->user()->update(['languages' => $request->validated('languages', [])]);
-
-        return redirect()->route('welcome')->with('success', 'Languages updated successfully!');
     }
 }
