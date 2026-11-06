@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Log;
 class DeepLService
 {
     protected const TIMEOUT = 5;
+
     protected $authKey;
+
     protected $baseUrl;
 
     public function __construct()
